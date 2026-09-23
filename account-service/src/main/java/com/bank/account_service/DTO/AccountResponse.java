@@ -1,7 +1,7 @@
 package com.bank.account_service.DTO;
 
-import entity.AccountStatus;
-import entity.AccountType;
+import com.bank.account_service.entity.AccountStatus;
+import com.bank.account_service.entity.AccountType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

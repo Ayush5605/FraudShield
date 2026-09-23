@@ -1,6 +1,6 @@
 package com.bank.account_service.DTO;
 
-import entity.AccountType;
+import com.bank.account_service.entity.AccountType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
