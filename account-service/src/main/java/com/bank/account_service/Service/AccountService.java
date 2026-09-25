@@ -80,4 +80,11 @@ public class AccountService {
 
     }
 
+    public AccountResponse getAccount(String accountNumber){
+        Account account=accountRepo.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account Not Found"));
+
+        return mapToResponse(account);
+    }
+
 }

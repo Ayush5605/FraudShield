@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.bank.account_service.entity.Account;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 
 @Repository
 public interface AccountRepo extends JpaRepository<Account,String> {
@@ -11,4 +13,6 @@ public interface AccountRepo extends JpaRepository<Account,String> {
 
 
     boolean existsByAccountNumber(String accountNumber);
+
+    Optional<Account> findByAccountNumber(String accountNumber);
 }
