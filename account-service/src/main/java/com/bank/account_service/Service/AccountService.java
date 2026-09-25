@@ -10,12 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 
 @Service
 @Slf4j
 public class AccountService {
 
     private final AccountRepo accountRepo;
+    private static SecureRandom secureRandom=new SecureRandom();
     public AccountResponse createAccount(CreateAccountRequest request){
         log.info("Creating account for :{}",request.getEmail());
 
@@ -57,6 +59,22 @@ public class AccountService {
         response.setCreatedAt(account.getCreatedAt());
 
         return response;
+
+    }
+
+    private String generateAccountNumber(){
+
+        String accountNumber;
+
+        do{
+            long number = secureRandom.nextLong(1_000_000_000_000L);
+
+            accountNumber=String.format("%012d",number);
+
+        }while(accountRepo.existsByAccountNumber(accountNumber));
+
+        return accountNumber;
+
 
     }
 
