@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 
+import static com.bank.account_service.entity.AccountStatus.BLOCKED;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -94,6 +96,55 @@ public class AccountService {
         return account.getBalance();
     }
 
+    /** called by fraud-detection servie via kafka **/
     public void blockAccount(String accountNumber) {
+        log.info("Blocking account :"+accountNumber);
+
+        Account account=accountRepo.findByAccountNumber(accountNumber)
+                .orElseThrow(()->new RuntimeException("Account not found !"));
+
+        account.setStatus(AccountStatus.BLOCKED);
+        accountRepo.save(account);
+
+        log.info(accountNumber+"Account Blocked !");
+
+    }
+
+    /** called by transaction-service **/
+    public void deductBalance(String accountNumber,BigDecimal amount){
+        log.info("Deducting Balance :"+accountNumber);
+        Account account=accountRepo.findByAccountNumber(accountNumber)
+                .orElseThrow(()->new RuntimeException("Account not found !"));
+
+        if(account.getStatus() !=AccountStatus.ACTIVE){
+            throw new RuntimeException("Account not active !!");
+
+        }else{
+            if(account.getBalance().compareTo(amount)<0){
+                throw new RuntimeException("Insufficient Balance !");
+            }
+
+            account.setBalance(account.getBalance().subtract(amount));
+            accountRepo.save(account);
+
+            log.info("Amount debited successfully");
+
+
+        }
+
+    }
+
+    public void credit_balance(String accountNumber,BigDecimal amount){
+        Account account=accountRepo.findByAccountNumber(accountNumber)
+                .orElseThrow(()->new RuntimeException("Account not found !"));
+
+        if(account.getStatus()!=AccountStatus.ACTIVE){
+            throw  new RuntimeException("Account is not active !");
+        }else{
+            account.setBalance(account.getBalance().add(amount));
+
+            accountRepo.save(account);
+            log.info("Amount {} credited successfully!", amount);
+        }
     }
 }
