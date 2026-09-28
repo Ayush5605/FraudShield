@@ -80,11 +80,20 @@ public class AccountService {
 
     }
 
-    public AccountResponse getAccount(String accountNumber){
+    public AccountResponse getAccount(String accountNumber) {
         Account account=accountRepo.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Account Not Found"));
+                .orElseThrow(()-> new RuntimeException("Account Not Found !"));
 
         return mapToResponse(account);
     }
 
+    public BigDecimal getBalance(String accountNumber) {
+        Account account=accountRepo.findByAccountNumber(accountNumber)
+                .orElseThrow(()-> new RuntimeException("Account Not Found !"));
+
+        return account.getBalance();
+    }
+
+    public void blockAccount(String accountNumber) {
+    }
 }
