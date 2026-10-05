@@ -66,7 +66,7 @@ public class AccountController {
 
     @PutMapping("{accountNumber}/credit")
     public ResponseEntity<String> creditBalance(@PathVariable String accountNumber,@RequestParam BigDecimal amount){
-        accountService.creditBalance(accountNumber,amount);
+        accountService.credit_balance(accountNumber,amount);
         return ResponseEntity.ok("Balance credited successfully");
     }
 
