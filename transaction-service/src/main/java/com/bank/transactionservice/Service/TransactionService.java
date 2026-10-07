@@ -8,10 +8,12 @@ import com.bank.transactionservice.Entity.TransactionStatus;
 import com.bank.transactionservice.Entity.TransactionType;
 import com.bank.transactionservice.Repository.TransactionRepository;
 import com.bank.transactionservice.TransactionServiceApplication;
+import com.bank.transactionservice.event.TransactionInitiatedEvent;
 import jakarta.validation.Valid;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountServiceClient accountServiceClient;
+    private final KafkaTemplate<String,Object> kafkaTemplate;
 
     private static final String TRANSACTION_INITIATED_TOPIC="transaction.initiated";
     private static final String TRANSACTION_COMPLETED_TOPIC="transaction.completed";
@@ -70,6 +73,34 @@ public class TransactionService {
 
         Transaction savedTransaction=transactionRepository.save(transaction);
         log.info("Transaction saved as PROCESSING:{}",savedTransaction.getId());
+
+        TransactionInitiatedEvent event=new TransactionInitiatedEvent(
+                savedTransaction.getId(),
+                savedTransaction.getSenderAccountNumber(),
+                savedTransaction.getReceiverAccountNumber(),
+                savedTransaction.getAmount(),
+                savedTransaction.getDescription()
+
+        );
+
+        kafkaTemplate.send(TRANSACTION_INITIATED_TOPIC,savedTransaction.getId(),event);
+        log.info("SAGA step 2 - Transaction InititatedEvent published:{}",savedTransaction.getId());
+
+        return mapToResponse(savedTransaction);
+
+
+
+    }
+
+    private TransactionResponse mapToResponse(Transaction transaction){
+        TransactionResponse response=new TransactionResponse();
+        response.setId(transaction.getId());
+        response.setSenderAccountNumber(transaction.getSenderAccountNumber());
+        response.setReceiverAccountNumber(transaction.getReceiverAccountNumber());
+        response.setAmount(transaction.getAmount());
+        response.setDescription(transaction.getDescription());
+
+        return response;
 
     }
 }
