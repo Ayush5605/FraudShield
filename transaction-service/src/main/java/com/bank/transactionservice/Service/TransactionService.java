@@ -30,13 +30,20 @@ public class TransactionService {
     private static final String TRANSACTION_INITIATED_TOPIC="transaction.initiated";
     private static final String TRANSACTION_COMPLETED_TOPIC="transaction.completed";
     private static final String TRANSACTION_REFUNDED_TOPIC="transaction.refunded";
-    public TransactionResponse verifyOTP(String transactionId, String otp) {
-    }
-
-    public List<TransactionResponse> getTransactionHistory(String accountNumber) {
-    }
+//    public TransactionResponse verifyOTP(String transactionId, String otp) {
+//    }
+//
+//    public List<TransactionResponse> getTransactionHistory(String accountNumber) {
+//    }
 
     public TransactionResponse getTransaction(String transactionId) {
+
+        return mapToResponse(transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Transaction Not Found !"+transactionId
+        )));
+
+
     }
 
     /* SAGA step-1
