@@ -70,5 +70,15 @@ public class FraudDetectionService {
 
 
 
+
+
+    }
+    private FraudCheckResult performFraudChecks(
+            String accountNumber,
+            BigDecimal amount,
+            BigDecimal senderBalance
+
+    ){
+
     }
 }
