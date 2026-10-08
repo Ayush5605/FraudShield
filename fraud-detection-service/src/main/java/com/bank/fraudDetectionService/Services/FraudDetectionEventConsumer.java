@@ -1,0 +1,36 @@
+package com.bank.fraudDetectionService.Services;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+import static org.apache.kafka.common.requests.DeleteAclsResponse.log;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class FraudDetectionEventConsumer {
+
+    private final FraudDetectionService fraudDetectionService;
+
+    @KafkaListener(topics="transaction.initiated",groupId="fraud-detection-group")
+    public void consumeTransactionInitiated(
+            @Payload Map<String,Object> payload
+    ){
+        log.info("Received Transaction for fraud check {}",
+                payload.get("transactionId"));
+
+        try{
+
+            fraudDetectionService.checkTransaction(payload);
+
+        }catch(Exception e){
+
+        }
+    }
+
+}
