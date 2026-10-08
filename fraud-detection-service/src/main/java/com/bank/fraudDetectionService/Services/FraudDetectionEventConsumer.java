@@ -17,6 +17,9 @@ public class FraudDetectionEventConsumer {
 
     private final FraudDetectionService fraudDetectionService;
 
+
+    /** every transaction goes though fraud check before completing **/
+
     @KafkaListener(topics="transaction.initiated",groupId="fraud-detection-group")
     public void consumeTransactionInitiated(
             @Payload Map<String,Object> payload
