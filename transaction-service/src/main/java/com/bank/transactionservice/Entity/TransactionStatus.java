@@ -14,7 +14,7 @@ public enum TransactionStatus {
 
     PENDING,
     PROCESSING,
-    PRENDING_VERIFICATION,
+    PENDING_VERIFICATION,
     COMPLETED,
     FAILED,
     FLAGGED
