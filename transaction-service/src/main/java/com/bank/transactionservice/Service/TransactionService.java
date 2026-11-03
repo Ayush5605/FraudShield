@@ -8,6 +8,7 @@ import com.bank.transactionservice.Entity.TransactionStatus;
 import com.bank.transactionservice.Entity.TransactionType;
 import com.bank.transactionservice.Repository.TransactionRepository;
 import com.bank.transactionservice.TransactionServiceApplication;
+import com.bank.transactionservice.event.TransactionCompletedEvent;
 import com.bank.transactionservice.event.TransactionInitiatedEvent;
 import jakarta.validation.Valid;
 import lombok.NoArgsConstructor;
@@ -153,6 +154,24 @@ public class TransactionService {
     }
 
     private void completeTransaction(Transaction transaction) {
+        transaction.setStatus(TransactionStatus.COMPLETED);
+        transaction.setCompletedAt(LocalDateTime.now());
+        transactionRepository.save(transaction);
+
+        TransactionCompletedEvent completedEvent=new TransactionCompletedEvent(
+                transaction.getId(),
+                transaction.getSenderAccountNumber(),
+                transaction.getReceiverAccountNumber(),
+                transaction.getAmount(),
+                transaction.getDescription()
+
+        );
+        kafkaTemplate.send(TRANSACTION_COMPLETED_TOPIC,transaction.getId(),completedEvent);
+
+        log.info("SAGA COMPLETE-Transaction{} completed",
+                transaction.getId());
+
+
     }
 
     private void blockAccountAndCompensate(Transaction transaction, String reason) {
