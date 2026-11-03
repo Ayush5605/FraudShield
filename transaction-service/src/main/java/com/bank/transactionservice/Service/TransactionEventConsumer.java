@@ -6,6 +6,7 @@ import com.bank.transactionservice.Repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,8 @@ public class TransactionEventConsumer {
 
     private final KafkaTemplate<String,Object> kafkaTemplate;
     private static final String TRANSACTION_OTP_GENERATED_TOPIC="transaction.otp.generated";
+
+    @KafkaListener(topics = "verification.required")
 
 
     public void consumeVerificationRequired(@Payload Map<String,Object> payload){

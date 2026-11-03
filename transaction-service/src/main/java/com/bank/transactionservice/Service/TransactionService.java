@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,7 @@ public class TransactionService {
     private static final String TRANSACTION_INITIATED_TOPIC="transaction.initiated";
     private static final String TRANSACTION_COMPLETED_TOPIC="transaction.completed";
     private static final String TRANSACTION_REFUNDED_TOPIC="transaction.refunded";
+    private final RedisTemplate<String,String>redisTemplate;
 //    public TransactionResponse verifyOTP(String transactionId, String otp) {
 //    }
 //
@@ -116,5 +118,37 @@ public class TransactionService {
 
         return response;
 
+    }
+
+    public TransactionResponse verifyOTP(String transactionId, String otp) {
+        log.info("otp verification for the transaction:{}",transactionId);
+
+
+        Transaction transaction=transactionRepository.findById(transactionId)
+        .orElseThrow(()->new RuntimeException(
+                "Transaction not found"+transactionId
+        ));
+
+        String otpKey="verifiaction:otp"+transactionId;
+        String storedOtp=redisTemplate.opsForValue().get(otpKey);
+
+        if(storedOtp==null){
+            log.warn("OTP expired for transaction:{}",transactionId);
+            compensateTransaction(transaction,"OTP expired -transaction cancelled and amount refunded");
+            return mapToResponse(transaction);
+        }
+
+        if(!storedOtp.equals(otp)){
+            log.warn("Wrong otp=blocking account and refunding:{}",transactionId);
+            redisTemplate.delete(otpKey);
+            blockAccountAndCompensate(transaction,
+                    "wrong otp entered- transaction cancelled,"+
+                    "account blocked for security");
+            return mapToResponse(transaction);
+        }
+        log.info("OTP verified-completing transaction :{}",transactionId);
+        redisTemplate.delete(otpKey);
+        completeTransaction(transaction);
+        return mapToResponse(transaction);
     }
 }
