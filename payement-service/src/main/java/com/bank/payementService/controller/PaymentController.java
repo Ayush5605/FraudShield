@@ -25,7 +25,7 @@ public class PaymentController {
 
     @PostMapping("/create-order")
     public ResponseEntity<PaymentOrderResponse> createPaymentOrder(
-            @Valid @RequestBody CreatePaymentRequest request) {
+            @Valid @RequestBody CreatePaymentRequest request) throws  RazorpayException {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(paymentService.createPaymentOrder(request));
