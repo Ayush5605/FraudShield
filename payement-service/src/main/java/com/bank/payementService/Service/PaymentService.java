@@ -31,8 +31,7 @@ public class PaymentService {
 
     private static final String PAYMENT_COMPLETED_TPOIC="payment.completed";
     private static final String PAYMENT_FAILED_TPOIC="payment.failed";
-    public void handleWebHook(Map<String, Object> payload) {
-    }
+
 
 
     /**
@@ -86,5 +85,7 @@ public class PaymentService {
                 keyId
 
         );
+    }
+    public void handleWebHook(Map<String, Object> payload) {
     }
 }
