@@ -87,5 +87,41 @@ public class PaymentService {
         );
     }
     public void handleWebHook(Map<String, Object> payload) {
+
+
+        log.info("Received Razorpay Webhook:{}",payload.get("event"));
+
+        String event=(String)payload.get("event");
+
+        if("payment.captured".equals(event)){
+            handlePaymentSuccess(payload);
+        }else if("payment.failed".equals(event)){
+            handlePaymentFailed(payload);
+        }
+    }
+
+    private void handlePaymentSuccess(Map<String,Object>payload){
+
+        try{
+
+            Map<String,Object> paymentData=extractPaymentData(payload);
+            String orderId=(String)paymentData.get("order_id");
+            String paymentId=(String)paymentData.get("payment_id");
+
+
+            Payment payment=paymentRepository.findByRazorpayOrderId(orderId)
+                    .orElseThrow(()-> new RuntimeException
+                            ("Payment not found for orderId:"+orderId));
+
+            payment.setRazorpayPaymentId(paymentId);
+            payment.setStatus(PaymentStatus.COMPLETED);
+        }catch(Exception e){
+
+        }
+
+    }
+
+    private void handlePaymentFailed(Map<String,Object>payload){
+
     }
 }
