@@ -9,10 +9,12 @@ import jakarta.persistence.criteria.Order;
 import jakarta.validation.Valid;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.util.JSONPObject;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final KafkaTemplate<String,Object> kafkaTemplate;
 
     @Value("${razorpay.key-id}")
     private String keyId;
@@ -115,7 +118,22 @@ public class PaymentService {
 
             payment.setRazorpayPaymentId(paymentId);
             payment.setStatus(PaymentStatus.COMPLETED);
+            paymentRepository.save(payment);
+
+            //published payment event completed
+
+            Map<String,Object>event=new HashMap<>();
+            event.put("paymentId",payment.getId());
+            event.put("accountNumber",payment.getAccountNumber());
+            event.put("amount",payment.getAmount());
+            event.put("razorpayPaymentId",paymentId);
+
+
+            kafkaTemplate.send(PAYMENT_COMPLETED_TPOIC,payment.getId(),event);
+
+            log.info("Payment completed:{}",payment.getId());
         }catch(Exception e){
+            log.error("Error handling payment success:{} ",e.getMessage());
 
         }
 
