@@ -176,4 +176,12 @@ public class PaymentService {
         }
 
     }
+
+    private Map<String,Object> extractPaymentData(Map<String,Object>payload){
+        Map<String,Object> entity=(Map<String,Object>) payload.get("payload");
+
+        Map<String,Object>paymentWrapper=(Map<String,Object>) entity.get("payment");
+
+        return (Map<String,Object>)paymentWrapper.get("entity");
+    }
 }
