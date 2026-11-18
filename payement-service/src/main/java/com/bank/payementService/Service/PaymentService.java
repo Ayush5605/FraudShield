@@ -32,8 +32,8 @@ public class PaymentService {
     @Value("${razorpay.key-secret}")
     private String keySecret;
 
-    private static final String PAYMENT_COMPLETED_TPOIC="payment.completed";
-    private static final String PAYMENT_FAILED_TPOIC="payment.failed";
+    private static final String PAYMENT_COMPLETED_TOPIC="payment.completed";
+    private static final String PAYMENT_FAILED_TOPIC="payment.failed";
 
 
 
@@ -129,7 +129,7 @@ public class PaymentService {
             event.put("razorpayPaymentId",paymentId);
 
 
-            kafkaTemplate.send(PAYMENT_COMPLETED_TPOIC,payment.getId(),event);
+            kafkaTemplate.send(PAYMENT_COMPLETED_TOPIC,payment.getId(),event);
 
             log.info("Payment completed:{}",payment.getId());
         }catch(Exception e){
@@ -140,6 +140,40 @@ public class PaymentService {
     }
 
     private void handlePaymentFailed(Map<String,Object>payload){
+
+
+        try{
+            Map<String,Object> paymentData=extractPaymentData(payload);
+            String orderId=(String)paymentData.get("order_id");
+
+
+            Payment payment=paymentRepository.findByRazorpayOrderId(orderId)
+                    .orElseThrow(()-> new RuntimeException
+                            ("Payment not found for orderId:"+orderId));
+
+
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailureReason("Payment failed via Razorpay");
+            paymentRepository.save(payment);
+
+
+            Map<String,Object>event=new HashMap<>();
+            event.put("paymentId",payment.getId());
+            event.put("accountNumber",payment.getAccountNumber());
+            event.put("amount",payment.getAmount());
+            event.put("reason","Payment failed via Razorpay");
+
+
+            kafkaTemplate.send(PAYMENT_FAILED_TOPIC,payment.getId(),event);
+
+            log.warn("payment failed:{}",payment.getId());
+
+
+
+        }catch(Exception e){
+            log.error("Error handling payment failure:{}",e.getMessage());
+
+        }
 
     }
 }
