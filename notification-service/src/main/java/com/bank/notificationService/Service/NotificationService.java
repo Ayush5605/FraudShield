@@ -111,5 +111,33 @@ public class NotificationService {
 
     }
 
+    @KafkaListener(topics = "fraud.detected")
+    public void consumeFraudDetected(@Payload Map<String, Object> payload) {
+
+        try{
+
+            String accountNumber=(String)payload.get("accountNumber");
+            String reason=(String)payload.get("reason");
+
+            sendAlert(accountNumber,
+                    "SUSPICIOUS ACTIVITY DETECTED",
+                    String.format(
+                            "Your account %s has been blocked"+
+                                    "Reason:%s"+
+                                    "Please contact your bank immediately",
+                            accountNumber,reason
+                    ));
+
+
+
+
+        }catch (Exception e){
+            log.error("Error sending fraud alert:{}",e.getMessage());
+
+        }
+
+
+    }
+
 
 }
